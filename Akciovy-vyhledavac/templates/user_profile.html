@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block title %}Profil uživatele{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1 class="mb-4">Profil uživatele</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Informace o uživateli</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-placeholder bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                                {{ user.username[0] }}
+                            </div>
+                            <div>
+                                <h5 class="mb-1">{{ user.username }}</h5>
+                                <p class="text-muted mb-0">{{ user.email }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p><strong>Název portfolia:</strong> {{ user.portfolio.name }}</p>
+                            <p><strong>Datum registrace:</strong> 12.04.2025</p>
+                        </div>
+                        <!-- Edit profile button removed as requested -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Přehled portfolia</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3 border-0">
+                                    <div class="card-body bg-dark text-warning rounded">
+                                        <h6 class="mb-1 text-light">Celková hodnota</h6>
+                                        <h3 class="mb-0">${{ "{:,.2f}".format(portfolio_summary['total_value']) }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3 border-0">
+                                    <div class="card-body bg-dark rounded">
+                                        <h6 class="mb-1 text-light">Zisk/Ztráta</h6>
+                                        <h3 class="mb-0 {% if portfolio_summary['total_gain_loss'] >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            ${{ "{:,.2f}".format(portfolio_summary['total_gain_loss']) }}
+                                            <small>({{ "{:.2f}%".format(portfolio_summary['total_gain_loss_percent']) }})</small>
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h5>Aktivita</h5>
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Přidáno do portfolia: AAPL</h6>
+                                        <small class="text-muted">07.05.2025</small>
+                                    </div>
+                                    <p class="mb-1">Přidáno 5 akcií za cenu $190.50</p>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Přidáno do portfolia: MSFT</h6>
+                                        <small class="text-muted">06.05.2025</small>
+                                    </div>
+                                    <p class="mb-1">Přidáno 3 akcie za cenu $420.75</p>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Registrace uživatele</h6>
+                                        <small class="text-muted">12.04.2025</small>
+                                    </div>
+                                    <p class="mb-1">Vytvoření účtu a portfolia</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('portfolio') }}" class="btn btn-warning">
+                                <i class="fas fa-chart-pie me-1"></i> Zobrazit celé portfolio
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Settings section removed as requested -->
+    </div>
+{% endblock %}

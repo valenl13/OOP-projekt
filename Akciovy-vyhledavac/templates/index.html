@@ -1,0 +1,244 @@
+{% extends "layout.html" %}
+
+{% block title %}Akciový Sledovač - Vizualizace Cen Akcií{% endblock %}
+
+{% block content %}
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Vyhledat Akcie</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="stock-form" method="POST" action="/">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="ticker" class="form-label">Symbol Akcie</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="ticker" name="ticker" 
+                                               placeholder="Např. AAPL, MSFT, GOOGL" value="{{ ticker }}" required>
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search me-1"></i> Hledat
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Zadejte symbol akcie (např. AAPL pro Apple, MSFT pro Microsoft)</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Časové Období</label>
+                                    <div class="period-selector">
+                                        {% for period in periods %}
+                                        <input type="radio" class="btn-check" name="period" id="period-{{ period.value }}" 
+                                               value="{{ period.value }}" {% if selected_period == period.value %}checked{% endif %}>
+                                        <label class="btn btn-outline-secondary" for="period-{{ period.value }}">
+                                            {{ period.label }}
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if chart %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">{{ ticker }} - Cenový Vývoj</h4>
+                        <div>
+                            <a href="{{ url_for('add_to_portfolio', ticker=ticker) }}" class="btn btn-sm btn-outline-success me-2">
+                                <i class="fas fa-plus-circle me-1"></i> Přidat do portfolia
+                            </a>
+                            <span class="badge bg-info">{{ selected_period }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="stock-chart-container">
+                            <img src="{{ chart }}" alt="Graf cen akcií" class="img-fluid stock-chart">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-chart-line empty-state-icon mb-3"></i>
+                        <h4>Zadejte symbol akcie pro zobrazení grafu</h4>
+                        <p class="text-muted">Vyberte symbol akcie a časové období a klikněte na tlačítko Hledat</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if company_info %}
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Informace o společnosti</h4>
+                    </div>
+                    <div class="card-body">
+                        <h2 class="company-name">{{ company_info.name }}</h2>
+                        <div class="row company-info-row">
+                            <div class="col-md-6">
+                                <p><strong>Sektor:</strong> {% if company_info.sector_cz %}{{ company_info.sector_cz }}{% else %}{{ company_info.sector }}{% endif %}</p>
+                                <p><strong>Průmysl:</strong> {% if company_info.industry_cz %}{{ company_info.industry_cz }}{% else %}{{ company_info.industry }}{% endif %}</p>
+                                <p><strong>Tržní kapitalizace:</strong> {% if company_info.market_cap %}{{ "{:,.0f}".format(company_info.market_cap) }} USD{% else %}Neznámá{% endif %}</p>
+                                <p><strong>P/E poměr:</strong> {% if company_info.pe_ratio %}{{ "%.2f"|format(company_info.pe_ratio) }}{% else %}Neznámý{% endif %}</p>
+                                <p><strong>Zisk na akcii (EPS):</strong> {% if company_info.eps %}{{ "%.2f"|format(company_info.eps) }}{% else %}Neznámý{% endif %}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Dividendový výnos:</strong> {% if company_info.dividend_yield %}{{ "%.2f"|format(company_info.dividend_yield * 100) }}%{% else %}Neznámý{% endif %}</p>
+                                <p><strong>Počet zaměstnanců:</strong> {% if company_info.employees %}{{ "{:,}".format(company_info.employees) }}{% else %}Neznámý{% endif %}</p>
+                                <p><strong>Země:</strong> {% if company_info.country_cz %}{{ company_info.country_cz }}{% else %}{{ company_info.country }}{% endif %}</p>
+                                <p><strong>Beta:</strong> {% if company_info.beta %}{{ "%.2f"|format(company_info.beta) }}{% else %}Neznámá{% endif %}</p>
+                                <p><strong>52-týdenní maximum:</strong> {% if company_info.fifty_two_week_high %}{{ "%.2f"|format(company_info.fifty_two_week_high) }}{% else %}Neznámé{% endif %}</p>
+                                <p><strong>52-týdenní minimum:</strong> {% if company_info.fifty_two_week_low %}{{ "%.2f"|format(company_info.fifty_two_week_low) }}{% else %}Neznámé{% endif %}</p>
+                            </div>
+                        </div>
+                        {% if company_info.description %}
+                        <div class="mt-3">
+                            <h5>O společnosti:</h5>
+                            <div class="company-description">
+                                {% if company_info.description_cz %}
+                                <p>{{ company_info.description_cz }}</p>
+                                <div class="mt-3 pt-2 border-top">
+                                    <p class="text-muted small">
+                                        <i class="fas fa-language me-1"></i> Původní popis: <a class="btn-link toggle-original-text" data-bs-toggle="collapse" href="#originalDescription" role="button" aria-expanded="false" aria-controls="originalDescription">
+                                            Zobrazit/skrýt
+                                        </a>
+                                    </p>
+                                    <div class="collapse" id="originalDescription">
+                                        <p class="text-muted small">{{ company_info.description }}</p>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p>{{ company_info.description }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if company_info.website %}
+                        <div class="mt-2">
+                            <a href="{{ company_info.website }}" target="_blank" class="btn btn-outline-info">
+                                <i class="fas fa-external-link-alt me-1"></i> Webová stránka
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if news_items %}
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Aktuální zprávy - {{ ticker }}</h4>
+                        <span class="badge bg-secondary">{{ news_items|length }} článků</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="accordion" id="newsAccordion">
+                            {% for item in news_items %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse{{ loop.index }}">
+                                        {{ item.title_cz }}
+                                        <span class="badge bg-info ms-2">{{ item.source }}</span>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#newsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">
+                                            <small class="text-muted">Publikováno: {{ item.date }}</small>
+                                        </div>
+                                        <div class="news-content">
+                                            <p>{{ item.summary_cz }}</p>
+                                            <div class="mt-2">
+                                                <a href="{{ item.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-external-link-alt me-1"></i> Číst celý článek
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 pt-3 border-top">
+                                            <p><small class="text-muted">Původní text: {{ item.title }}</small></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Populární Akcie</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="popular-stocks">
+                            <form method="POST" action="/" class="d-inline">
+                                <input type="hidden" name="ticker" value="AAPL">
+                                <input type="hidden" name="period" value="{{ selected_period }}">
+                                <button type="submit" class="btn btn-outline-info mb-2 me-2">AAPL (Apple)</button>
+                            </form>
+                            <form method="POST" action="/" class="d-inline">
+                                <input type="hidden" name="ticker" value="MSFT">
+                                <input type="hidden" name="period" value="{{ selected_period }}">
+                                <button type="submit" class="btn btn-outline-info mb-2 me-2">MSFT (Microsoft)</button>
+                            </form>
+                            <form method="POST" action="/" class="d-inline">
+                                <input type="hidden" name="ticker" value="GOOG">
+                                <input type="hidden" name="period" value="{{ selected_period }}">
+                                <button type="submit" class="btn btn-outline-info mb-2 me-2">GOOG (Google)</button>
+                            </form>
+                            <form method="POST" action="/" class="d-inline">
+                                <input type="hidden" name="ticker" value="AMZN">
+                                <input type="hidden" name="period" value="{{ selected_period }}">
+                                <button type="submit" class="btn btn-outline-info mb-2 me-2">AMZN (Amazon)</button>
+                            </form>
+                            <form method="POST" action="/" class="d-inline">
+                                <input type="hidden" name="ticker" value="TSLA">
+                                <input type="hidden" name="period" value="{{ selected_period }}">
+                                <button type="submit" class="btn btn-outline-info mb-2 me-2">TSLA (Tesla)</button>
+                            </form>
+                            <form method="POST" action="/" class="d-inline">
+                                <input type="hidden" name="ticker" value="CEZ.PR">
+                                <input type="hidden" name="period" value="{{ selected_period }}">
+                                <button type="submit" class="btn btn-outline-info mb-2 me-2">CEZ.PR (ČEZ)</button>
+                            </form>
+                            <form method="POST" action="/" class="d-inline">
+                                <input type="hidden" name="ticker" value="AVAST.PR">
+                                <input type="hidden" name="period" value="{{ selected_period }}">
+                                <button type="submit" class="btn btn-outline-info mb-2 me-2">AVAST.PR (Avast)</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

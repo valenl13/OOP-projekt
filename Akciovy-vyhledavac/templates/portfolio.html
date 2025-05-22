@@ -1,0 +1,139 @@
+{% extends "layout.html" %}
+
+{% block title %}Portfolio{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ portfolio.name }}</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('add_to_portfolio') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Přidat akcii
+            </a>
+        </div>
+    </div>
+
+    {% for message in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ message[0] }} alert-dismissible fade show" role="alert">
+            {{ message[1] }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Přehled portfolia</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card bg-dark">
+                        <div class="card-body text-center">
+                            <h5 class="text-light">Celková hodnota</h5>
+                            <h3 class="text-warning">{{ "{:,.2f}".format(total_value) }} Kč</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-dark">
+                        <div class="card-body text-center">
+                            <h5 class="text-light">Celkové náklady</h5>
+                            <h3 class="text-warning">{{ "{:,.2f}".format(total_cost) }} Kč</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-dark">
+                        <div class="card-body text-center">
+                            <h5 class="text-light">Zisk/Ztráta</h5>
+                            <h3 class="{% if total_gain_loss > 0 %}text-success{% elif total_gain_loss < 0 %}text-danger{% else %}text-warning{% endif %}">
+                                {{ "{:+,.2f}".format(total_gain_loss) }} Kč
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-dark">
+                        <div class="card-body text-center">
+                            <h5 class="text-light">Výkonnost</h5>
+                            <h3 class="{% if total_gain_loss_percent > 0 %}text-success{% elif total_gain_loss_percent < 0 %}text-danger{% else %}text-warning{% endif %}">
+                                {{ "{:+.2f}".format(total_gain_loss_percent) }}%
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if portfolio_items %}
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Vaše akcie</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Společnost</th>
+                            <th>Množství</th>
+                            <th>Nákupní cena</th>
+                            <th>Aktuální cena</th>
+                            <th>Celková hodnota</th>
+                            <th>Zisk/Ztráta</th>
+                            <th>Výkonnost</th>
+                            <th>Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in portfolio_items %}
+                        <tr>
+                            <td>
+                                <form method="POST" action="/" class="d-inline">
+                                    <input type="hidden" name="ticker" value="{{ item.ticker }}">
+                                    <input type="hidden" name="period" value="1mo">
+                                    <button type="submit" class="btn btn-link p-0">{{ item.ticker }}</button>
+                                </form>
+                            </td>
+                            <td>{{ item.company_name }}</td>
+                            <td>{{ "{:,.2f}".format(item.quantity) }}</td>
+                            <td>{{ "{:,.2f}".format(item.purchase_price) }} Kč</td>
+                            <td>{{ "{:,.2f}".format(item.current_price) }} Kč</td>
+                            <td>{{ "{:,.2f}".format(item.current_value) }} Kč</td>
+                            <td class="{% if item.gain_loss > 0 %}text-success{% elif item.gain_loss < 0 %}text-danger{% endif %}">
+                                {{ "{:+,.2f}".format(item.gain_loss) }} Kč
+                            </td>
+                            <td class="{% if item.gain_loss_percent > 0 %}text-success{% elif item.gain_loss_percent < 0 %}text-danger{% endif %}">
+                                {{ "{:+.2f}".format(item.gain_loss_percent) }}%
+                            </td>
+                            <td>
+                                <form action="{{ url_for('delete_from_portfolio', item_id=item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Opravdu chcete odstranit {{ item.ticker }} z portfolia?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h3 class="text-muted mb-4">Vaše portfolio je prázdné</h3>
+            <p class="mb-4">Začněte přidáním akcie do vašeho portfolia</p>
+            <a href="{{ url_for('add_to_portfolio') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus-circle me-2"></i> Přidat akcii
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
